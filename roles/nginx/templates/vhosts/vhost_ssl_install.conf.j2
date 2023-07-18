@@ -1,0 +1,28 @@
+server {
+    listen 80;
+    listen 443 ssl;
+
+    root /var/www/{{ hostname }};
+    index index.php index.html index.htm;
+
+    server_name {{ hostname }};
+
+    if ( $http_user_agent ~* (nmap|nikto|wikto|sf|sqlmap|bsqlbf|w3af|acunetix|havij|appscan) ) {
+        return 403;
+    }
+
+    location /.well-known {
+        root /var/www/letsencrypt;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+}
+

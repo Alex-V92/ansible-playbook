@@ -1,0 +1,107 @@
+- name: Install nginx, certbot
+  become: true
+  apt: 
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    update_cache: yes 
+    state: latest
+
+- name: Check exists dhparam file
+  become: true
+  stat:
+    path: "{{ dparam_path }}"
+  register: dhparam_details
+
+- name: Generate dhparams file
+  become: true
+  shell: openssl dhparam -out {{ dparam_path }} 2048
+  when: dhparam_details.stat.exists == false
+
+- name: Copy nginx config
+  become: true
+  template: 
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify:
+    - restart nginx
+
+- name: Check exists ssl cert file
+  become: true
+  stat:
+    path: /etc/letsencrypt/live/{{ hostname }}/fullchain.pem
+  register: ssl_cert_details
+
+- name: Copy default vhost
+  become: true
+  template: 
+    src: templates/vhosts/default.j2
+    dest: /etc/nginx/sites-available/default
+  notify:
+    - restart nginx
+
+- name: Add nginx blank vhost config
+  become: true
+  template:
+    src: templates/vhosts/vhost_ssl_install.conf.j2
+    dest: /etc/nginx/sites-available/{{ hostname }}.conf
+  notify:
+    - restart nginx
+  when: ssl_cert_details.stat.exists == false
+
+- name: Create vhost symbolic link 
+  become: true
+  file:
+    src: /etc/nginx/sites-available/{{ hostname }}.conf
+    dest: /etc/nginx/sites-enabled/{{ hostname }}.conf
+    state: link
+  notify:
+    - restart nginx
+
+- name: Check /var/www/letsencrypt folder 
+  stat: 
+    path: /var/www/letsencrypt
+  register: www_letsencrypt
+
+- name: Create directory /var/www/letsencrypt
+  become: true
+  file:
+    path: /var/www/letsencrypt
+    owner: www-data
+    group: www-data
+    state: directory
+  when: www_letsencrypt.stat.exists == false
+
+- name: Install ssl cert
+  become: true
+  shell: certbot certonly -d {{hostname}} -m {{certbot_email}} -i nginx --agree-tos --non-interactive --standalone
+  when: ssl_cert_details.stat.exists == false
+
+- name: Add ssl renewal script
+  become: true
+  template:
+    src: templates/ssl_renewal.sh.j2
+    dest: /root/ssl_renewal.sh
+    mode: 0744
+
+- name: Create ssl renewal cron job
+  become: true
+  cron:
+    name: "Ssl renewal"
+    minute: "30"
+    hour: "2"
+    weekday: "1" 
+    job: "/root/ssl_renewal.sh >> /var/log/le-renew.log"
+
+- name: Add nginx {{hostname}} vhost config
+  become: true
+  template:
+    src: templates/vhosts/{{hostname}}_vhost.conf.j2
+    dest: /etc/nginx/sites-available/{{ hostname }}.conf
+  notify:
+    - restart nginx
+
+- name: Adding user {{ ansible_ssh_user }} to group www-data
+  become: true
+  shell: usermod -a -G www-data {{ ansible_ssh_user }} 

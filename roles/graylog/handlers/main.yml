@@ -1,0 +1,9 @@
+
+# handlers file for graylog
+---
+- name: Restart graylog-sidecar
+  become: True
+  systemd:
+    name: graylog-sidecar
+    state: restarted
+    daemon_reload: True

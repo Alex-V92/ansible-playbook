@@ -1,0 +1,3 @@
+dparam_path: "/etc/ssl/certs/dhparam.pem"
+nginx_client_max_body_size: 8M
+certbot_email: support@example.com

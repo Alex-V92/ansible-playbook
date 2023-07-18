@@ -1,0 +1,3 @@
+- name: restart zabbix-agent
+  become: true
+  shell: systemctl restart zabbix-agent

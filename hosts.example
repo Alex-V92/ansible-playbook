@@ -1,0 +1,54 @@
+all:
+  vars:
+    ssh_port: 22
+    crm_url: https://example.com
+    app_key: secret
+    ansible_ssh_private_key_file: ~/.ssh/ansible_ssh_private_key_file
+    ansible_ssh_user: dev
+    zabbix_server_ip: ip_zabbix_server
+    db:
+      database: database 
+    bs_url: https://example.com
+    jwt:
+      secret: secret
+      ttl: 60
+    cloud:
+      aws:
+        access_key_id: id
+        secret_access_key: key
+        region: eu-central-1
+      yc:
+        access_key_id: id
+        secret_access_key: key
+        region: ru-central1-a
+    filesystem:
+      driver: yc
+      aws:
+        bucket: bucket
+      yc:
+        bucket: bucket
+
+
+  children:
+    packager:
+      hosts:
+        127.0.0.1:
+          hostname: example.com
+          ansible_port: 1049
+          sidecar_api_token: # token in graylog
+          use_env_template: false
+          php_fpm_max_children: 53
+          php_fpm_min_spare_servers: 20  
+          php_fpm_max_spare_servers: 40
+          php_fpm_start_servers: 30
+          mysql_root_db_pass: # password for login in DB on root
+          mysql_db:
+            - name: db_name
+              replicate: yes
+          mysql_users:
+            - name: db_user_1
+              pass: db_user_1_pass
+              priv: "*.*:ALL"
+            - name: db_user_2
+              pass: db_user_2_pass
+              priv: "*.*:ALL"

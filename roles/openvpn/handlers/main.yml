@@ -1,0 +1,6 @@
+- name: enable openvpn
+  become: true
+  shell: systemctl enable openvpn@testvpn
+- name: restart openvpn
+  become: true
+  shell: systemctl restart openvpn

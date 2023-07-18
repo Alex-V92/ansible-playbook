@@ -1,0 +1,53 @@
+- name: Install deps
+  become: true
+  apt: 
+    name:
+      - grep 
+      - gawk 
+      - lsof 
+      - jq 
+      - libfcgi0ldbl 
+      - unzip
+    update_cache: yes 
+    state: latest
+
+- name: Install zabbix agent 5.0
+  become: true
+  block:
+    - name: Get deb for Ubuntu 18
+      when: ansible_distribution_major_version == "18" and ansible_distribution == "Ubuntu"
+      shell: wget https://repo.zabbix.com/zabbix/5.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.0-1+bionic_all.deb
+    - name: Install deb for Ubuntu 18
+      shell: dpkg -i zabbix-release_5.0-1+bionic_all.deb
+      when: ansible_distribution_major_version == "18" and ansible_distribution == "Ubuntu"
+
+    - name: Get deb for for Ubuntu 20
+      when: ansible_distribution_major_version == "20" and ansible_distribution == "Ubuntu"
+      shell: wget https://repo.zabbix.com/zabbix/5.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.0-1+focal_all.deb
+    - name: Install deb for for Ubuntu 20
+      when: ansible_distribution_major_version == "20" and ansible_distribution == "Ubuntu"
+      shell: dpkg -i zabbix-release_5.0-1+focal_all.deb
+
+    - name: Get deb for for Ubuntu 22
+      when: ansible_distribution_major_version == "22" and ansible_distribution == "Ubuntu"
+      shell: wget https://repo.zabbix.com/zabbix/5.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.0-2+ubuntu22.04_all.deb
+    - name: Install deb for for Ubuntu 22
+      when: ansible_distribution_major_version == "22" and ansible_distribution == "Ubuntu"
+      shell: dpkg -i zabbix-release_5.0-2+ubuntu22.04_all.deb
+
+    - name: Apt update 
+      shell: apt update
+    - name: Install zabbix-agent
+      shell: apt install zabbix-agent
+
+- name: Configure zabbix agent
+  become: true
+  template:
+    src: templates/zabbix_agentd.conf.j2
+    dest: /etc/zabbix/zabbix_agentd.conf
+  notify:
+    - restart zabbix-agent
+
+- name: Enable zabbix-agent
+  become: true
+  shell: systemctl enable zabbix-agent

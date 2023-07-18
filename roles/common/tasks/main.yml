@@ -1,0 +1,63 @@
+- name: Set timezone
+  become: true
+  shell: timedatectl set-timezone {{ timezone }}
+
+- name: Current datetime
+  debug:
+    msg: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
+
+- name: Add sshd config 
+  become: true
+  template:
+    src: templates/sshd_config.j2
+    dest: /etc/ssh/sshd_config
+  notify:
+    - restart sshd
+
+- name: Copy ssh key
+  copy:
+    src: "{{ item }}"
+    dest: "{{ dest_keys }}"
+  loop:
+    - "{{ id_rsa }}"
+    - "{{ id_rsa_pub }}"
+
+- name: Change permissions id_rsa
+  file:
+    path: "{{ dest_keys }}id_rsa"
+    owner: dev
+    group: dev
+    mode: '600'
+
+
+- name: Install packages
+  become: true
+  apt: 
+    name:
+      - htop
+      - net-tools
+      - git
+      - unzip
+      - curl
+      - iptables
+    update_cache: yes 
+    state: latest
+
+- name: Check /etc/cloud/cloud.cfg.d/95-yandex-cloud.cfg 
+  stat:
+    path: /etc/cloud/cloud.cfg.d/95-yandex-cloud.cfg 
+  register: cloud_cfg_yandex
+
+- name: Disable manage_etc_hosts
+  become: true
+  lineinfile:
+    path: /etc/cloud/cloud.cfg.d/95-yandex-cloud.cfg
+    regexp: '^manage_etc_hosts: true'
+    line: "manage_etc_hosts: false"
+  when: cloud_cfg_yandex.stat.exists
+
+- name: Install Crontab
+  become: true
+  apt:
+    name: cron
+    state: latest

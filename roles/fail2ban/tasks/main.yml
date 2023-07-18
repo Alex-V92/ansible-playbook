@@ -1,0 +1,15 @@
+- name: Install fail2ban
+  become: true
+  apt: 
+    name:
+      - fail2ban
+    update_cache: yes 
+    state: latest
+
+- name: Configure fail2ban
+  become: true
+  template:
+    src: templates/jail.local.j2
+    dest: /etc/fail2ban/jail.local
+  notify:
+    - restart fail2ban
