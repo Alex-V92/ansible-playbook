@@ -1,0 +1,5 @@
+#/bin/bash
+iptables -I INPUT 1 -p tcp -m multiport --dports 80,443 -m comment --comment "tmp for letsencrypt update" -j ACCEPT;
+/usr/bin/certbot renew --noninteractive >> /var/log/le-renew.log
+/bin/systemctl reload nginx
+iptables -D INPUT -p tcp -m multiport --dports 80,443 -m comment --comment "tmp for letsencrypt update" -j ACCEPT;

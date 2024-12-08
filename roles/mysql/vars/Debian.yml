@@ -1,0 +1,13 @@
+---
+# vars file for mysql
+mysql_packages:
+  - mysql-server
+  - python3-pip
+  - python-dev
+
+python_packages:
+  - ConfigParser
+  - PyMySql
+
+mysql_service: mysql
+mysql_conf_dir: "/etc/mysql"

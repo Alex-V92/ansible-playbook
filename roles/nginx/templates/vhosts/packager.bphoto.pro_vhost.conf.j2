@@ -1,0 +1,92 @@
+server {
+  listen 80;
+  server_name {{ hostname }};
+  proxy_set_header Host {{ hostname }};
+
+  location / {
+    rewrite ^(.*)$ https://{{ hostname }}$1 permanent;
+  }
+}
+
+ssl_session_cache shared:SSL:20m;
+
+server {
+    listen 443 ssl http2;
+    ssl on;
+    ssl_protocols               TLSv1.2 TLSv1.1 TLSv1;
+    ssl_session_timeout         10m;
+    ssl_ciphers                 'EECDH+ECDSA+AESGCM:AES128+EECDH:AES128+EDH:!RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!CAMELLIA:!IDEA:!ADH:!SSLv2';
+    ssl_dhparam                 {{ dparam_path }};
+    ssl_prefer_server_ciphers   on;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header Strict-Transport-Security "max-age=31536000";
+    add_header Access-Control-Allow-Origin {{ crm_url }} always;
+    add_header Access-Control-Allow-Credentials true always;
+    add_header Access-Control-Allow-Methods GET,PUT,POST,DELETE,OPTIONS always;
+    add_header Access-Control-Allow-Headers Origin,X-Requested-With,Content-Range,Content-Disposition,Content-Type,Authorization,csrf_token always;
+    add_header Access-Control-Expose-Headers content-disposition always;
+    add_header Content-Security-Policy "default-src 'self' https:; connect-src https: wss:; frame-ancestors 'none'; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: https://*.google-analytics.com https://mc.yandex.ru; style-src 'unsafe-inline' https:; report-uri https://o391421.ingest.sentry.io/api/5237505/security/?sentry_key=56900718cfba44ee9dc2b216fc8794b7";
+    add_header X-XSS-Protection "1; mode=block";
+
+    ssl_certificate /etc/letsencrypt/live/{{ hostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ hostname }}/privkey.pem;
+
+    root /var/www/{{ hostname }}/public;
+    index index.php index.html index.htm;
+
+    server_name {{ hostname }};
+
+    if ( $http_user_agent ~* (nmap|nikto|wikto|sf|sqlmap|bsqlbf|w3af|acunetix|havij|appscan) ) {
+        return 403;
+    }
+
+	location /.well-known {
+        root /var/www/letsencrypt;
+    }
+
+	location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        fastcgi_pass unix:/run/php/php{{ php_version }}-fpm.sock;
+        fastcgi_index  index.php;
+
+        fastcgi_param  DOCUMENT_ROOT    $document_root;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        fastcgi_param  PATH_TRANSLATED  $document_root$fastcgi_script_name;
+
+        include fastcgi_params;
+        fastcgi_param  QUERY_STRING     $query_string;
+        fastcgi_param  REQUEST_METHOD   $request_method;
+        fastcgi_param  CONTENT_TYPE     $content_type;
+        fastcgi_param  CONTENT_LENGTH   $content_length;
+        fastcgi_intercept_errors        on;
+        fastcgi_ignore_client_abort     off;
+        fastcgi_connect_timeout 60;
+        fastcgi_send_timeout 180;
+        fastcgi_read_timeout 180;
+        fastcgi_buffer_size 128k;
+        fastcgi_buffers 4 256k;
+        fastcgi_busy_buffers_size 256k;
+        fastcgi_temp_file_write_size 256k;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+	location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+}
