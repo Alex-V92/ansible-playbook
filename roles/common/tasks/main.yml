@@ -1,0 +1,60 @@
+---
+# tasks file for common
+- name: Application list
+  set_fact:
+    application_list:
+      - htop
+      - net-tools
+      - git
+      - unzip
+      - curl
+      - cron
+      - samba
+
+- name: Set timezone
+  become: true
+  shell: timedatectl set-timezone {{ timezone }}
+
+- name: Current datetime
+  debug:
+    msg: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
+
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Update and upgrade dnf packages
+  become: true
+  dnf:
+    upgrade: yes
+    update_cache: yes
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install packages apt
+  become: true
+  apt: 
+    name: "{{ application_list }}"
+    update_cache: yes 
+    state: latest
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install packages dnf
+  become: true
+  ansible.builtin.dnf: 
+    name: "{{ application_list }}"
+    update_cache: yes 
+    state: latest
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install SSH config
+  ansible.builtin.template:
+    src: templates/sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+  notify: restart sshd
+

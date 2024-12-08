@@ -1,0 +1,67 @@
+---
+# tasks file for samba
+- name: Backup samba.cnf
+  ansible.builtin.copy:
+    src: /etc/samba/smb.conf
+    dest: "/etc/samba/smb_bac_{{ ansible_date_time.date }}.conf"
+
+- name: Create directory for share
+  ansible.builtin.file:
+    path: "{{ share_directory }}"
+    state: directory
+    mode: '0777'
+
+- name: Copy config for access users
+  ansible.builtin.template:
+    src: templates/smb.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  notify: Restart Samba services 
+
+- name: Add the users 
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: /bin/bash
+    create_home: no
+  loop: "{{ samba_users }}"
+
+- name: Create Samba users if they don't exist yet
+  ansible.builtin.shell: >
+    set -o nounset -o pipefail -o errexit &&
+    (pdbedit --user={{ item.name }} 2>&1 > /dev/null) \
+    || (echo '{{ item.password }}'; echo '{{ item.password }}') \
+    | smbpasswd -s -a {{ item.name }}
+  args:
+    executable: /bin/bash
+  no_log: false
+  register: create_user_output
+  loop: "{{ samba_users }}"
+  # when: samba_users is defined and samba_users | length > 0
+  changed_when: "'Added user' in create_user_output.stdout"
+  notify: Restart Samba services
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# - name: Samba configuration
+#   template:
+#     dest: "{{ samba_configuration }}"
+#     src: smb.conf.j2
+#     validate: 'testparm -s %s'
+#   notify:
+#     - Restart Samba services
+#   tags: samba

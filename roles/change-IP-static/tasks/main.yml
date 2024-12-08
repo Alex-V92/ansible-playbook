@@ -1,0 +1,33 @@
+---
+- name: Get stats directory "netplan"
+  stat:
+    path: "{{ directory }}"
+  register: directory_stat
+
+- name: Delete directory "netplan"
+  file:
+    path: "{{ directory }}"
+    state: absent
+
+- name: Create directory "netplan"
+  file:
+    path: "{{ directory }}"
+    state: directory
+    owner: "{{ directory_stat.stat.pw_name }}"
+    group: "{{ directory_stat.stat.gr_name }}"
+    mode: "{{ directory_stat.stat.mode }}"
+
+
+- name: Change Ip Addr
+  ansible.builtin.template:
+    src: templates/conf.j2
+    dest: /etc/netplan/01-network-manager-all.yaml
+    owner: root
+    group: root
+    mode: '0600'
+  notify:
+    - Apply netplan
+
+
+
+

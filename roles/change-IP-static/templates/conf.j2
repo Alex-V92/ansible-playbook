@@ -1,0 +1,13 @@
+# Let NetworkManager manage all devices on this system
+network:
+  version: 2
+#  renderer: NetworkManager
+  ethernets:
+    ens18:
+      dhcp4: no
+      addresses: [{{ ip_static }}/24]
+      routes:
+        - to: default
+          via: 192.168.88.254
+      nameservers:
+        addresses: [ 8.8.8.8, 77.88.8.8, 77.88.8.1 ]

@@ -1,0 +1,7 @@
+---
+- name: Apply netplan
+  become: true
+  shell: netplan apply
+  async: 35
+  poll: 0
+
