@@ -3,10 +3,10 @@
   hosts: test_samba
   become: true
   vars:
-    ip_static: 192.168.88.106
+    ip_static: 192.168.88.109
+    ssh_port: 22
   roles:
     - role: common
-      ssh_port: 22
     - role: samba
       name_path: share_test
       share_directory: /var/share_test
@@ -28,6 +28,9 @@
             39623636396538353263386264663239386237313930653865393662653761643538646364353663
             6432313735613033340a373631386466613132393162386533666535373437393638393532333137
             3234
+    - role: iptables
+      app: samba
+    - fail2ban
     - role: change-IP-static
       directory: /etc/netplan/
 

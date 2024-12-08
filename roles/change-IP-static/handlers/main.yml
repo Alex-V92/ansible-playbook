@@ -4,4 +4,3 @@
   shell: netplan apply
   async: 35
   poll: 0
-

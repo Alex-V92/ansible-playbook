@@ -1,9 +1,0 @@
-- name: restart php-fpm
-  become: true
-  shell: systemctl restart php{{ php_version }}-fpm
-- name: restart nginx
-  become: true
-  shell: systemctl restart nginx
-- name: reload nginx
-  become: true
-  shell: systemctl reload nginx

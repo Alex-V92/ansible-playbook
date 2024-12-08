@@ -26,6 +26,7 @@
     shell: /bin/bash
     create_home: no
   loop: "{{ samba_users }}"
+  no_log: true
 
 - name: Create Samba users if they don't exist yet
   ansible.builtin.shell: >
@@ -35,33 +36,9 @@
     | smbpasswd -s -a {{ item.name }}
   args:
     executable: /bin/bash
-  no_log: false
+  no_log: true
   register: create_user_output
   loop: "{{ samba_users }}"
-  # when: samba_users is defined and samba_users | length > 0
   changed_when: "'Added user' in create_user_output.stdout"
   notify: Restart Samba services
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# - name: Samba configuration
-#   template:
-#     dest: "{{ samba_configuration }}"
-#     src: smb.conf.j2
-#     validate: 'testparm -s %s'
-#   notify:
-#     - Restart Samba services
-#   tags: samba
