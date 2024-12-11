@@ -18,8 +18,8 @@
 
 - name: Create config
   ansible.builtin.template:
-    src: templates/wg0-client-ansible.conf
-    dest: /etc/wireguard/"{{ wg_name }}".conf
+    src: templates/wg0-client-ansible.j2
+    dest: /etc/wireguard/{{ wg_name }}.conf
     owner: root
     group: root
     mode: "0644"
@@ -34,7 +34,10 @@
   when: change_wg_conf.changed
 
 - name: Start new service
-  shell: cd /etc/wireguard/ | wg-quick up {{ wg_name }}
+  shell: | 
+    cd /etc/wireguard/ | wg-quick up {{ wg_name }}
+    systemctl enable wg-quick@{{ wg_name }}
+  when: change_wg_conf.changed
   register: start_new_wg
 
 - name: Check connect to wg-server
@@ -42,5 +45,4 @@
     host: 10.66.66.1
     port: 22
     timeout: 5
-    delay: 5
   when: start_new_wg.changed
