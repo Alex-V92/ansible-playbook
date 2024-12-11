@@ -1,2 +1,2 @@
 pass
-roles/wg/templates/*.j2
+roles/wg-client/templates/*.j2

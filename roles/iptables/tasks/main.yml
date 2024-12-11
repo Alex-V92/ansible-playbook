@@ -9,10 +9,12 @@
   template:
     src: templates/{{ app }}.rules.v4.j2
     dest: /etc/iptables/rules.v4
+  register: change_rules
 
 - name: Apply iptables rules
   become: true
   shell:  iptables-restore < /etc/iptables/rules.v4
+  when: change_rules.changed
 
 - name: Install iptables-persistent
   become: true
@@ -21,13 +23,3 @@
       - iptables-persistent
     update_cache: yes 
     state: latest
-
-# - name: Copy restore script 
-#   become: true
-#   template: 
-#     src: templates/restore.sh
-#     dest: /etc/network/if-up.d/00-iptables
-
-# - name: Set chmod at restore script
-#   become: true
-#   shell: chmod +x /etc/network/if-up.d/00-iptables

@@ -31,7 +31,7 @@
     - role: iptables
       app: samba
     - fail2ban
-    - role: wg
+    - role: wg-client
     - role: change-IP-static
       directory: /etc/netplan/
 

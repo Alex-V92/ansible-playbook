@@ -1,0 +1,46 @@
+---
+# tasks file for wg-client
+- name: Install packages apt
+  become: true
+  apt: 
+    name: "{{ deb_packages }}"
+    update_cache: yes 
+    state: latest
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install packages dnf
+  become: true
+  ansible.builtin.dnf: 
+    name: "{{ rhel_packages }}"
+    update_cache: yes 
+    state: latest
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Create config
+  ansible.builtin.template:
+    src: templates/wg0-client-ansible.conf
+    dest: /etc/wireguard/"{{ wg_name }}".conf
+    owner: root
+    group: root
+    mode: "0644"
+  register: change_wg_conf
+
+- name: Stop and delete old service
+  shell: |
+    for f in /etc/wireguard/*.conf; do wg-quick down $(basename -s .conf "$f") ; done
+    systemctl disable wg-quick@{{ wg_name }}
+    systemctl daemon-reload
+    systemctl reset-failed
+  when: change_wg_conf.changed
+
+- name: Start new service
+  shell: cd /etc/wireguard/ | wg-quick up {{ wg_name }}
+  register: start_new_wg
+
+- name: Check connect to wg-server
+  wait_for:
+    host: 10.66.66.1
+    port: 22
+    timeout: 5
+    delay: 5
+  when: start_new_wg.changed

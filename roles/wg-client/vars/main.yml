@@ -1,0 +1,12 @@
+---
+# vars file for wg-client
+wg_name: wg0
+
+rhel_packages:
+  - epel-release
+  - elrepo-release
+  - kmod-wireguard
+  - wireguard-tools
+
+deb_packages:
+ - wireguard
