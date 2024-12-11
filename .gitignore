@@ -1,1 +1,2 @@
 pass
+roles/wg/templates/*.j2
