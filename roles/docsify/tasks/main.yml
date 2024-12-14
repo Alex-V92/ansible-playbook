@@ -1,0 +1,66 @@
+---
+# tasks file for docsify
+- name: Install packages apt
+  become: true
+  apt: 
+    name: "{{ deb_packages }}"
+    update_cache: yes 
+    state: latest
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install packages dnf
+  become: true
+  ansible.builtin.dnf: 
+    name: "{{ rhel_packages }}"
+    update_cache: yes 
+    state: latest
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install docsify
+  community.general.npm:
+    name: docsify-cli
+    global: true
+
+- name: Copy Identity file
+  copy:
+    src: files/id_rsa
+    dest: /tmp/id_rsa
+    owner: alex
+    group: alex
+    mode: 400
+
+- name: Create work directory if not exist
+  ansible.builtin.file:
+    path: "{{ work_dir }}"
+    state: directory
+
+- name: Clone a github repository
+  git:
+    repo: git@github.com:Alex-V92/cv_markdown.git
+    dest: "{{ work_dir }}"
+    clone: yes
+    accept_hostkey: yes
+    force: true
+    key_file: /tmp/id_rsa
+  register: github_change
+
+- name: Delete Identity file
+  ansible.builtin.file:
+    path: /tmp/id_rsa
+    state: absent
+
+- name: Copy unit file
+  ansible.builtin.template:
+    src: templates/unit.j2
+    dest: /etc/systemd/system/docsify_app.service
+    owner: root
+    group: root
+    mode: 744
+  register: unit_change
+
+- name: Enable and run service docsify_app
+  shell: |
+    systemctl daemon-reload
+    systemctl enable docsify_app
+    systemctl start docsify_app
+  when: unit_change.changed or github_change.changed

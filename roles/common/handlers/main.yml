@@ -2,4 +2,4 @@
 # handlers file for common
 - name: restart sshd
   become: true
-  shell: systemctl restart sshd
+  shell: systemctl restart ssh

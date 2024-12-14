@@ -1,0 +1,15 @@
+[Unit]
+Description=My docsify web-portfolioo
+Requires=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory={{ work_dir }}
+ExecStart=/usr/local/bin/docsify serve . --port {{ docsify_port }}
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

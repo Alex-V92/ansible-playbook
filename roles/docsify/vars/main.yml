@@ -1,0 +1,9 @@
+---
+# vars file for docsify
+wg_name: wg0
+
+rhel_packages:
+  - npm
+
+deb_packages:
+  - npm
