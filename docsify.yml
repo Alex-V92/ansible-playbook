@@ -1,15 +1,15 @@
 ---
 - name: Starting Samba Server
-  hosts: test_samba
+  hosts: docsify-test
   become: true
   vars:
     ip_static: 192.168.88.111
     ssh_port: 22
   roles:
-    # - role: common
-    # # - role: iptables
-    # #   app: samba
-    # - fail2ban
+    - role: common
+    - role: iptables
+      app: docsify
+    - fail2ban
     # - role: wg-client
     - role: docsify
     # - role: change-IP-static

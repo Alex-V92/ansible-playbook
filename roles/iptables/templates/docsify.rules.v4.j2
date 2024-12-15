@@ -7,13 +7,12 @@
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -p tcp -m tcp --dport {{ ssh_port }} -j ACCEPT
 
-# SAMBA
--A INPUT -s 192.168.0.0/16 -p tcp --dport 445 -j ACCEPT
--A INPUT -s 192.168.0.0/16 -p udp --dport 137:138 -j ACCEPT
--A INPUT -s 192.168.0.0/16 -p tcp --dport 139 -j ACCEPT
--A INPUT -s 10.66.0.0/16 -p tcp --dport 445 -j ACCEPT
--A INPUT -s 10.66.0.0/16 -p udp --dport 137:138 -j ACCEPT
--A INPUT -s 10.66.0.0/16 -p tcp --dport 139 -j ACCEPT
+# DOCSIFY
+-A INPUT -p tcp --dport 443 -j ACCEPT
+-A INPUT -p tcp --dport 80 -j ACCEPT
+-A INPUT -s 192.168.0.0/16 -p tcp --dport 30000 -j ACCEPT
+-A INPUT -s 10.66.0.0/16 -p tcp --dport 30000 -j ACCEPT
+
 
 # ICMP (ping)
 -A INPUT -s 192.168.0.0/16 -p icmp -m icmp --icmp-type 8 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
