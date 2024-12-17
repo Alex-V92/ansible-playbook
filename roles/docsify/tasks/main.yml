@@ -27,7 +27,7 @@
     dest: /tmp/id_rsa
     owner: "{{ github_user }}"
     group: "{{ github_user }}"
-    mode: 400
+    mode: "0400"
 
 - name: Create work directory if not exist
   ansible.builtin.file:
