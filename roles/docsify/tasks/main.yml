@@ -25,8 +25,8 @@
   copy:
     src: files/id_rsa
     dest: /tmp/id_rsa
-    owner: alex
-    group: alex
+    owner: "{{ github_user }}"
+    group: "{{ github_user }}"
     mode: 400
 
 - name: Create work directory if not exist
