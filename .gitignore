@@ -1,3 +1,5 @@
 pass
 roles/wg-client/templates/*.j2
 roles/docsify/files/*
+docsify.yml
+samba.yml
