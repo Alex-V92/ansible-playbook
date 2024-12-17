@@ -63,5 +63,6 @@
     systemctl daemon-reload
     systemctl enable docsify_app
     systemctl start docsify_app
-  when: test_in_docker == false and unit_change.changed or github_change.changed
-
+  when:
+    - test_in_docker == false
+    - unit_change.changed or github_change.changed
