@@ -3,3 +3,4 @@
 docsify_port: 30000
 work_dir: /opt/docsify
 github_user: root
+test_in_docker: false
