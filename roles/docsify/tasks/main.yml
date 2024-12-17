@@ -36,7 +36,7 @@
 
 - name: Clone a github repository
   git:
-    repo: git@github.com:Alex-V92/cv_markdown.git
+    repo: https://github.com/Alex-V92/cv_markdown.git
     dest: "{{ work_dir }}"
     clone: yes
     accept_hostkey: yes
