@@ -19,6 +19,8 @@
 -A INPUT -s 192.168.0.0/16 -p icmp -m icmp --icmp-type 8 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -s 10.66.0.0/16 -p icmp -m icmp --icmp-type 8 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
 
+# PROMETHEUS
+-A INPUT -s 10.66.0.0/16 -p tcp -m tcp --dport 9100 -j ACCEPT
 
 # traceroute
 -A INPUT -p udp --dport 33434:33474 -j REJECT
